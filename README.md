@@ -1,2 +1,2 @@
 # create-track-map-png-maker
-this is my generator for creating pngs out of create track map API
+it requires arial.tff to be present in the folder and pillow library
