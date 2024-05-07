@@ -5,9 +5,8 @@ it requires arial.tff to be present in the folder and pillow library to be insta
 launch instructions:
 1. Download Create Track map mod and start a world/server
 2. clone the repo
-3. download python 3.11
-4. place arial.tff file in the main folder with main.py script
-5. do "pip install pillow" in terminal
-6. launch main.py
+3. place arial.tff file in the main folder with main.py script
+4. install pillow
+5. launch main.py
 
 Tested in python 3.11 on Linux
