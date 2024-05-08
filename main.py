@@ -1,12 +1,19 @@
+import os
 from datetime import datetime
 
 import requests
 from PIL import Image, ImageDraw, ImageFont
+from dotenv import load_dotenv
 
 
 def fetch_data():
-    url_trains = "http://192.168.1.40:3876/api/trains"
-    url_network = "http://192.168.1.40:3876/api/network"
+    load_dotenv()
+
+    IP = os.getenv("SERVER_IP")
+    PORT = os.getenv("SERVER_API_PORT")
+
+    url_trains = f"http://{IP}:{PORT}/api/trains"
+    url_network = f"http://{IP}:{PORT}/api/network"
 
     try:
         response_trains = requests.get(url_trains)
@@ -59,17 +66,16 @@ def plot_map(trains_data, network_data):
 
         for train in trains_data['trains']:
             for car in train['cars']:
-                draw.line(
-                    (addx + car['leading']['location']['x'], addz + car['leading']['location']['z'],
-                     addx + car['trailing']['location']['x'], addz + car['trailing']['location']['z']),
-                    (255, 0, 127, 255), width=3
-                )
+                LEADING = addx + car['leading']['location']['x'], addz + car['leading']['location']['z']
+                TRAILING = addx + car['trailing']['location']['x'], addz + car['trailing']['location']['z']
 
-            draw.text(
-                (addx + train['cars'][0]['leading']['location']['x'] - 3,
-                 addz + train['cars'][0]['leading']['location']['z'] - 6), train['name'], fill=(0, 255, 0, 255),
-                font=font
-            )
+                draw.line(
+                    (LEADING, TRAILING), (255, 0, 127, 255), width=3)
+
+            TEXT_POS = (addx + train['cars'][0]['leading']['location']['x'] - 3,
+                        addz + train['cars'][0]['leading']['location']['z'] - 6)
+
+            draw.text(TEXT_POS, train['name'], fill=(0, 255, 0, 255), font=font)
 
         im.save(f"{int(datetime.timestamp(datetime.now()))}.png", "PNG")
         im.show()

@@ -1,0 +1,2 @@
+SERVER_IP = localhost
+SERVER_API_PORT = 3876
