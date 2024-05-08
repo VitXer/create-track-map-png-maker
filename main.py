@@ -1,5 +1,6 @@
+from datetime import datetime
+
 import requests
-import datetime
 from PIL import Image, ImageDraw, ImageFont
 
 
@@ -70,12 +71,20 @@ def plot_map(trains_data, network_data):
                 font=font
             )
 
-        im.save(f"{int(datetime.datetime.timestamp(datetime.datetime.now()))}.png", "PNG")
+        im.save(f"{int(datetime.timestamp(datetime.now()))}.png", "PNG")
+        im.show()
 
 
 def draw_track(draw, addx, addz, track, color=(0, 0, 0, 255), width=0, segments=5):
     path = track['path']
-    points = path if len(path) != 4 else bezier_curve(*path, segments=segments)
+
+    if len(path) == 2:
+        points = path
+    elif path[0]['x'] == path[-1]['x'] or path[0]['z'] == path[-1]['z']:
+        points = [{'x': path[0]['x'], 'z': path[0]['z']}, {'x': path[-1]['x'], 'z': path[-1]['z']}]
+    else:
+        points = bezier_curve(*path, segments=segments)
+
     draw.line([(addx + point['x'], addz + point['z']) for point in points], color, width)
 
 
