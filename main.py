@@ -4,8 +4,8 @@ from PIL import Image, ImageDraw, ImageFont
 
 
 def fetch_data():
-    url_trains = "http://localhost:3876/api/trains"
-    url_network = "http://localhost:3876/api/network"
+    url_trains = "http://192.168.1.40:3876/api/trains"
+    url_network = "http://192.168.1.40:3876/api/network"
 
     try:
         response_trains = requests.get(url_trains)
@@ -54,42 +54,39 @@ def plot_map(trains_data, network_data):
         font = ImageFont.truetype("arial.ttf", 12)
 
         for track in network_data['tracks']:
-            print(len(track['path']))
-            if len(track['path']) == 2:
-                draw.line((addx + track['path'][0]['x'], addz + track['path'][0]['z'], addx + track['path'][1]['x'],
-                           addz + track['path'][1]['z']), (0, 0, 0, 255))
-
-            elif len(track['path']) == 4:
-
-                if (track['path'][0]['x'] == track['path'][1]['x'] and track['path'][2]['y'] == track['path'][3][
-                    'y']) or (
-                        track['path'][2]['x'] == track['path'][3]['x'] and track['path'][0]['y'] == track['path'][1][
-                    'y']):
-
-                    for i in range(3):
-                        draw.line((addx + track['path'][i]['x'], addz + track['path'][i]['z'],
-                                   addx + track['path'][i + 1]['x'], addz + track['path'][i + 1]['z']), (50, 0, 0, 255))
-
-                else:
-                    draw.line((addx + track['path'][0]['x'], addz + track['path'][0]['z'], addx + track['path'][3]['x'],
-                               addz + track['path'][3]['z']), (50, 0, 0, 255))
-
-            else:
-                print("?")
-                break
+            draw_track(draw, addx, addz, track)
 
         for train in trains_data['trains']:
-
             for car in train['cars']:
-                draw.line((addx + car['leading']['location']['x'], addz + car['leading']['location']['z'],
-                           addx + car['trailing']['location']['x'], addz + car['trailing']['location']['z']),
-                          (255, 0, 127, 255), width=3)
+                draw.line(
+                    (addx + car['leading']['location']['x'], addz + car['leading']['location']['z'],
+                     addx + car['trailing']['location']['x'], addz + car['trailing']['location']['z']),
+                    (255, 0, 127, 255), width=3
+                )
 
-            draw.text((addx + train['cars'][0]['leading']['location']['x'] - 3,
-                       addz + train['cars'][0]['leading']['location']['z'] - 6), train['name'], fill=(0, 255, 0, 255),
-                      font=font)
+            draw.text(
+                (addx + train['cars'][0]['leading']['location']['x'] - 3,
+                 addz + train['cars'][0]['leading']['location']['z'] - 6), train['name'], fill=(0, 255, 0, 255),
+                font=font
+            )
 
         im.save(f"{int(datetime.datetime.timestamp(datetime.datetime.now()))}.png", "PNG")
+
+
+def draw_track(draw, addx, addz, track, color=(0, 0, 0, 255), width=0, segments=5):
+    path = track['path']
+    points = path if len(path) != 4 else bezier_curve(*path, segments=segments)
+    draw.line([(addx + point['x'], addz + point['z']) for point in points], color, width)
+
+
+def bezier_curve(p0, p1, p2, p3, segments):
+    points = []
+    for i in range(segments + 1):
+        t = i / segments
+        x = (1 - t) ** 3 * p0['x'] + 3 * (1 - t) ** 2 * t * p1['x'] + 3 * (1 - t) * t ** 2 * p2['x'] + t ** 3 * p3['x']
+        y = (1 - t) ** 3 * p0['z'] + 3 * (1 - t) ** 2 * t * p1['z'] + 3 * (1 - t) * t ** 2 * p2['z'] + t ** 3 * p3['z']
+        points.append({'x': x, 'z': y})
+    return points
 
 
 def main():
